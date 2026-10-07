@@ -1,4 +1,4 @@
-# Personalized Movie Recommendation - MLOps Pipeline (Group 6)
+# MLOPS-TEAM-PROJECT: Personalized Movie Recommendation - MLOps Pipeline (Group 6)
 
 End-to-end, continuously improving recommender on **MovieLens 100K**: data ingestion -> validation -> feature
 engineering -> training of 3 algorithms (+ popularity baseline + hybrid) -> evaluation -> quality gate -> model
