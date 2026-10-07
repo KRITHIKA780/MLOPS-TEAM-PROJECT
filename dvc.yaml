@@ -1,0 +1,23 @@
+stages:
+  ingest:
+    cmd: python -m src.pipeline ingest
+    deps: [src/data_ingestion.py, src/pipeline.py]
+    outs: [data/processed/ratings.csv]
+  validate:
+    cmd: python -m src.pipeline validate
+    deps: [data/processed/ratings.csv, src/data_validation.py]
+    outs: [results/validation.json]
+  features:
+    cmd: python -m src.pipeline features
+    deps: [data/processed/ratings.csv, src/feature_engineering.py]
+    outs: [data/processed/train.csv, data/processed/val.csv, data/processed/test.csv]
+  train:
+    cmd: python -m src.pipeline train
+    deps: [data/processed/train.csv, data/processed/val.csv, src/train.py, src/recommender.py]
+    params: [svd_factors, knn_k, content_max_features, hybrid_w_svd]
+    outs: [artifacts/candidate/bundle.pkl]
+  evaluate:
+    cmd: python -m src.pipeline evaluate
+    deps: [artifacts/candidate/bundle.pkl, data/processed/test.csv, src/evaluate.py]
+    metrics: [results/metrics.json]
+    outs: [results/results_table.md]

@@ -1,0 +1,5 @@
+# DVC params (mirrors the knobs in configs/config.yaml that affect training)
+svd_factors: 50
+knn_k: 40
+content_max_features: 500
+hybrid_w_svd: 0.8

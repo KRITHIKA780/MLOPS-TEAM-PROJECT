@@ -1,0 +1,5 @@
+# Optional: orchestration / data versioning / drift reports
+dvc>=3.50
+apache-airflow==2.9.2
+evidently>=0.4.30
+great-expectations>=0.18

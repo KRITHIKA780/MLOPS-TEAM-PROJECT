@@ -1,0 +1,42 @@
+# Train first on your machine (python -m src.pipeline all) so ./artifacts has a Production model,
+# or run the training service below once:  docker-compose run --rm trainer
+services:
+  trainer:
+    build: .
+    command: python -m src.pipeline all
+    environment: {MLFLOW_TRACKING_URI: "http://mlflow:5000", API_URL: "http://api:8000"}
+    volumes: ["./data:/opt/project/data", "./artifacts:/opt/project/artifacts", "./results:/opt/project/results"]
+    depends_on: [mlflow]
+    profiles: ["train"]
+  api:
+    build: .
+    ports: ["8000:8000"]
+    environment: {MLFLOW_TRACKING_URI: "http://mlflow:5000", API_KEY: "${API_KEY:-}"}
+    volumes: ["./data:/opt/project/data", "./artifacts:/opt/project/artifacts"]
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.1
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    ports: ["5000:5000"]
+    volumes: ["mlflow-data:/mlflow"]
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports: ["9090:9090"]
+    volumes: ["./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    depends_on: [api]
+  grafana:
+    image: grafana/grafana:11.1.0
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+  airflow:            # optional: scheduled retraining DAG (UI http://localhost:8080, credentials printed in logs)
+    image: apache/airflow:2.9.2
+    command: standalone
+    ports: ["8080:8080"]
+    environment:
+      PYTHONPATH: /opt/project
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      MLFLOW_TRACKING_URI: "http://mlflow:5000"
+      API_URL: "http://api:8000"
+      _PIP_ADDITIONAL_REQUIREMENTS: "numpy pandas scipy scikit-learn pyarrow pyyaml mlflow matplotlib"
+    volumes: ["./dags:/opt/airflow/dags", ".:/opt/project"]
+volumes:
+  mlflow-data:

@@ -1,0 +1,21 @@
+data:
+  path: data/raw/ml-100k
+  url: https://files.grouplens.org/datasets/movielens/ml-100k.zip
+  val_size: 0.1
+  test_size: 0.1
+models:
+  svd: {n_factors: 50, grid: [20, 50, 100]}
+  knn: {k: 40, min_support: 3}
+  content: {max_features: 500, k: 40}
+  hybrid: {w_svd: 0.8, w_content: 0.2}
+# pop_weight: 1e-4 = pure personalised ranking (tie-break only). Raise (0.3-1.0) to blend popularity into ranking.
+evaluation: {top_k: 10, rating_threshold: 4.0, pop_weight: 0.0001}
+ab_test:
+  experiment_name: svd_vs_hybrid
+  variant_a: svd
+  variant_b: hybrid
+  traffic_split_b: 0.5
+  alpha: 0.05
+serving: {top_n: 10, feedback_db: data/feedback.db}
+drift: {psi_threshold: 0.2, ks_alpha: 0.05, feature_share_threshold: 0.3}
+mlflow: {tracking_uri: mlruns, experiment: movie-recsys}
